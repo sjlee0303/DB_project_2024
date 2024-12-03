@@ -26,7 +26,9 @@
         </style>
     </head>
     <body>
-        <h1>RUN</h1>
+        {%if userid %}
+        <h1>{{userid}}'s RUN</h1>
+        {% endif %}
 
         <p>
             <a href="/my_recommand_run">my recommand run</a>

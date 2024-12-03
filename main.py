@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, redirect, url_for
 import sqlite3
 
 app = Flask(__name__)
@@ -12,7 +12,6 @@ def startpage():
 @app.route('/signup',methods=['GET','POST'])
 def signup():
 
-    run_record_result = None
     userid = None
     password = None
     if request.method == 'POST':
@@ -33,13 +32,36 @@ def signup():
 
     return render_template('signup.html', userid = userid)
 
-@app.route('/login')
+@app.route('/login',methods=['GET','POST'])
 def login():
+
+    userid = None
+    password = None
+    if request.method == 'POST':
+        userid = request.form['userid']
+        password = request.form['password']
+
+        db = sqlite3.connect('marathon.db')
+        cursor = db.cursor()
+
+        sql_query_login = '''
+        select passwd
+        from login
+        where id = ?
+        '''
+        cursor.execute(sql_query_login, (userid,))
+        result = cursor.fetchone()
+        passwd = result[0]
+
+        if password == passwd :
+            session['userid'] = userid
+            return redirect(url_for('home'))
 
     return render_template('login.html')
 
 @app.route('/home', methods=['GET','POST'])
 def home():
+    userid = session.get('userid',None)
     run_record_result = None
     if request.method == 'POST':
         if 'distance' in request.form:
@@ -60,7 +82,7 @@ def home():
             run_record_result = cursor.fetchall() 
             db.close()
 
-    return render_template('home.html', run_record_result=run_record_result)
+    return render_template('home.html', run_record_result=run_record_result, userid=userid)
 
 # get : 서버에서 데이터를 가져올 때 사용
 # post : 클라이언트가 서버로 데이터를 보낼때 사용
