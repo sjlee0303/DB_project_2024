@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <style>
+            a {
+                padding: 30px;
+            }
+
+            table {
+                width: 80%; /* 테이블 너비를 부모 요소의 80%로 설정 */
+                margin: 10px auto; /* 중앙 정렬 */
+                border-collapse: collapse; /* 테두리 겹침 제거 */
+            }
+
+            th, td {
+                border: 1px solid #ccc; /* 테두리 설정 */
+                padding: 5px; /* 셀 내부 여백 줄이기 */
+                text-align: center; /* 텍스트 가운데 정렬 */
+                font-size: 14px; /* 텍스트 크기 작게 설정 */
+            }
+
+            th {
+                background-color: #f2f2f2; /* 헤더 배경색 설정 */
+                font-weight: bold; /* 헤더 글씨 강조 */
+            }
+        </style>
     </head>
     <body>
         <h1>RUN</h1>
@@ -10,5 +33,50 @@
             <a href="/run_record">run record</a>
             <a href="/run_record_search">run_record_search</a>
         </p>
+
+        <form action="/" method="POST">
+            <label for="distance">Select Distance:</label>
+            <select id="distance" name="distance">
+                <option value="5km">5km</option>
+                <option value="10km">10km</option>
+                <option value="half">Half Marathon</option>
+                <option value="full">Full Marathon</option>
+            </select>
+            <span>기록 순위 </span>
+            <input type="submit" value="조회">
+        </form>
+
+        {%if run_record_result %}
+        
+            <table>
+                <thead>
+                    <tr>
+                        <th>순위</th>
+                        <th>id</th>
+                        <th>runner_id</th>
+                        <th>distance</th>
+                        <th>pace</th>
+                        <th>time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in run_record_result %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td>{{ row[3] }}</td>
+                        <td>{{ row[4] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        
+        {% else %}
+            <p>데이터가 없습니다.</p>
+
+        {% endif %}
+
     </body>
 </html>
