@@ -71,9 +71,31 @@ def my_recommand_run():
 
     return render_template('my_recommand_run.html', age=age, sex=sex, avg_time=avg_time)
 
-@app.route('/run_record')
+@app.route('/run_record', methods=['GET', 'POST'])
 def run_record():
+    if request.method == 'POST':
+        # 폼 데이터 가져오기
+        runner_id = request.form['runner_id']
+        distance = request.form['distance']
+        pace = request.form['pace']
+        time = request.form['time']
+
+        # SQLite 데이터베이스 연결
+        db = sqlite3.connect('marathon.db')
+        cursor = db.cursor()
+
+        # 데이터 저장
+        cursor.execute(
+            "INSERT INTO run_records (runner_id, distance, pace, time) VALUES (?, ?, ?, ?)",
+            (runner_id, distance, pace, time)
+        )
+        db.commit()
+        db.close()
+
+        # 성공 메시지
+        return "<h1>RUN 기록이 성공적으로 저장되었습니다!</h1>"
     return render_template('run_record.html')
+
 
 @app.route('/run_record_search')
 def run_record_search():
