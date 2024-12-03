@@ -97,9 +97,54 @@ def run_record():
     return render_template('run_record.html')
 
 
-@app.route('/run_record_search')
+@app.route('/run_record_search', methods=['GET'])
 def run_record_search():
-    return render_template('run_record_search.html')
+    # SQLite 데이터베이스 연결
+    db = sqlite3.connect('marathon.db')
+    cursor = db.cursor()
+
+    # 사용자 입력 가져오기
+    runner_id = request.args.get('runner_id')
+    distance = request.args.get('distance')
+
+    # 기본 쿼리
+    query = '''
+    SELECT
+        id,
+        runner_id,
+        distance,
+        pace,
+        time,
+        RANK() OVER (PARTITION BY distance ORDER BY 
+            CAST(SUBSTR(time, 1, 2) AS INTEGER) * 3600 +
+            CAST(SUBSTR(time, 4, 2) AS INTEGER) * 60 +
+            CAST(SUBSTR(time, 7, 2) AS INTEGER)
+        ) AS rank
+    FROM run_records
+    WHERE 1=1
+    '''
+
+    # 조건 추가
+    params = []
+    if runner_id:
+        query += " AND runner_id = ?"
+        params.append(runner_id)
+    if distance:
+        query += " AND distance = ?"
+        params.append(distance)
+
+    # 정렬 추가
+    query += " ORDER BY distance, rank"
+
+    # 쿼리 실행
+    cursor.execute(query, params)
+    runs = cursor.fetchall()
+    db.close()
+
+    return render_template('run_record_search.html', runs=runs)
+
+
+
 
 if __name__ == '__main__':
     app.debug = True

@@ -1,8 +1,64 @@
 <!DOCTYPE html>
 <html>
-    <head>
-    </head>
-    <body>
-        <h1>run record search</h1>
-    </body>
+<head>
+    <title>RUN 기록 조회</title>
+</head>
+<body>
+    <h1>RUN 기록 조회</h1>
+    <!-- 검색 폼 -->
+    <form method="GET" action="/run_record_search">
+        <label for="runner_id">Runner ID:</label>
+        <input type="text" id="runner_id" name="runner_id" placeholder="Enter Runner ID">
+        
+        <label for="distance">Distance:</label>
+        <select id="distance" name="distance">
+            <option value="">--Select Distance--</option>
+            <option value="5km">5km</option>
+            <option value="10km">10km</option>
+            <option value="half">Half Marathon</option>
+            <option value="full">Full Marathon</option>
+        </select>
+        <button type="submit">Search</button>
+    </form>
+    <br>
+    <!-- 전체 기록 보기 버튼 -->
+    <form method="GET" action="/run_record_search">
+        <button type="submit">View All Records</button>
+    </form>
+    <br>
+    <!-- 홈페이지 이동 버튼 -->
+    <form method="GET" action="/">
+        <button type="submit">Go to Home</button>
+    </form>
+    <br>
+    <!-- 테이블 결과 -->
+    {% if runs %}
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>ID</th>
+                <th>Runner ID</th>
+                <th>Distance</th>
+                <th>Pace</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for run in runs %}
+            <tr>
+                <td>{{ run[5] }}</td> <!-- Rank -->
+                <td>{{ run[0] }}</td>
+                <td>{{ run[1] }}</td>
+                <td>{{ run[2] }}</td>
+                <td>{{ run[3] }}</td>
+                <td>{{ run[4] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No records found.</p>
+    {% endif %}
+</body>
 </html>
