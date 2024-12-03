@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import sqlite3
+from sqlite3 import IntegrityError
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key' 
@@ -14,6 +15,7 @@ def signup():
 
     userid = None
     password = None
+    err_msg = None
     if request.method == 'POST':
         userid = request.form['userid']
         password = request.form['password']
@@ -26,11 +28,14 @@ def signup():
         values (?,?)
         '''
 
-        cursor.execute(sql_query_sign, (userid, password,))
-        db.commit() # 커밋을 통해 insert 실행
+        try :
+            cursor.execute(sql_query_sign, (userid, password,))
+            db.commit() # 커밋을 통해 insert 실행
+        except IntegrityError:
+            err_msg = "이미 사용 중인 아이디입니다. 다른 아이디를 사용해주세요."
         db.close()
 
-    return render_template('signup.html', userid = userid)
+    return render_template('signup.html', userid = userid, err_msg=err_msg)
 
 @app.route('/login',methods=['GET','POST'])
 def login():

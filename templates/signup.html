@@ -18,11 +18,16 @@
             <br>
             <input type="submit" value="가입">
         </form>
+        {% if err_msg %}
+        <p>"{{userid}}"는 {{err_msg}}</p>
 
+        {% else %}
         {% if userid %}
         <p>{{userid}} 님! 회원가입에 성공하였습니다!</p>
         <p>로그인 페이지에서 로그인 해주세요!</p>
         <a href="/login">login page</a>
+        {% endif %}
+
         {% endif %}
         
 
