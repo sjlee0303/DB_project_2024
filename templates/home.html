@@ -36,7 +36,7 @@
             <a href="/run_record_search">run_record_search</a>
         </p>
 
-        <form action="/" method="POST">
+        <form action="/home" method="POST">
             <label for="distance">Select Distance:</label>
             <select id="distance" name="distance">
                 <option value="5km">5km</option>
@@ -79,6 +79,7 @@
             <p>데이터가 없습니다.</p>
 
         {% endif %}
-
+        
+        <a href="/">log out</a>
     </body>
 </html>
