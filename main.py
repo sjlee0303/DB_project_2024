@@ -16,10 +16,13 @@ def my_recommand_run():
     #cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     #tables = cursor.fetchall()
     #print("Tables in the database:", tables)
-
+    age = None
+    sex = None
+    avg_time = None
     if request.method == 'POST' :
         # 사용자 입력 가져오기
         age = int(request.form['age'])
+        sex = request.form['sex']
 
         db = sqlite3.connect('marathon.db')
         cursor = db.cursor()
@@ -28,15 +31,15 @@ def my_recommand_run():
         WITH combined_times AS (
             SELECT "Official Time" AS time
             FROM marathon_results_2015 
-            where age BETWEEN ? and ?
+            where "M/F" = ? and age BETWEEN ? and ?
             UNION ALL
             SELECT "Official Time"
             FROM marathon_results_2016
-            where age BETWEEN ? and ?
+            where "M/F" = ? and age BETWEEN ? and ?
             UNION ALL
             SELECT "Official Time"
             FROM marathon_results_2017 
-            where age BETWEEN ? and ?
+            where "M/F" = ? and age BETWEEN ? and ?
         ),
         time_in_seconds AS (
             SELECT 
@@ -58,16 +61,15 @@ def my_recommand_run():
         FROM average_seconds;
         '''
     
-        cursor.execute(squl_query, (age-5, age+5, age-5, age+5, age-5, age+5))
+        cursor.execute(squl_query, (sex, age-5, age+5, sex, age-5, age+5, sex, age-5, age+5))
         result = cursor.fetchone()
         db.close()
 
         # 평균 시간 저장
-        avg_time = None
         avg_time=result[0]
         print(result[0])
 
-    return render_template('my_recommand_run.html', avg_time=avg_time)
+    return render_template('my_recommand_run.html', age=age, sex=sex, avg_time=avg_time)
 
 @app.route('/run_record')
 def run_record():
