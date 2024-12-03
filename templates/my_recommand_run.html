@@ -4,5 +4,12 @@
     </head>
     <body>
         <h1>my recommand run</h1>
+        <p>나이를 입력하세요 : </p>
+        <form action="/my_recommand_run" method="POST">
+            <input type="text" name="age"> 
+            <input type="submit" value="입력">
+        {% if avg_time %}
+            <p>평균 완주 시간 : {{avg_time}}</p>
+        {% endif %}
     </body>
 </html>
