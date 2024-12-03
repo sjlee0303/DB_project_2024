@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RUN 기록하기</title>
+</head>
+<body>
+    <h1>RUN 기록하기</h1>
+    <form method="POST" action="/run_record">
+        <label for="runner_id">ID:</label>
+        <input type="text" id="runner_id" name="runner_id" required><br><br>
+
+        <label for="distance">마라톤 거리:</label>
+        <select id="distance" name="distance">
+            <option value="5km">5km</option>
+            <option value="10km">10km</option>
+            <option value="half">Half Marathon</option>
+            <option value="full">Full Marathon</option>
+        </select><br><br>
+
+        <label for="pace">Pace (분/킬로미터):</label>
+        <input type="text" id="pace" name="pace" placeholder="예: 5:30" required><br><br>
+
+        <label for="time">완주 시간 (HH:MM:SS):</label>
+        <input type="text" id="time" name="time" placeholder="예: 02:30:45" required><br><br>
+
+        <button type="submit">저장</button>
+    </form>
+</body>
+</html>
