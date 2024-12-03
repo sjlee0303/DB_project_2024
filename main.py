@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session
 import sqlite3
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key' 
 
 @app.route('/')
 def home():
@@ -16,60 +17,99 @@ def my_recommand_run():
     #cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     #tables = cursor.fetchall()
     #print("Tables in the database:", tables)
-    age = None
-    sex = None
-    avg_time = None
+    
+    # 세션에서 이전 값 가져오기
+    age = session.get('age', None)
+    sex = session.get('sex', None)
+    avg_time = session.get('avg_time', None)
+    height = session.get('height', None)
+    run_cadence_result = session.get('run_cadence_result', None)
+
+
     if request.method == 'POST' :
         # 사용자 입력 가져오기
-        age = int(request.form['age'])
-        sex = request.form['sex']
+        if 'age' in request.form and 'sex' in request.form:
+            age = int(request.form['age'])
+            sex = request.form['sex']
 
-        db = sqlite3.connect('marathon.db')
-        cursor = db.cursor()
+            db = sqlite3.connect('marathon.db')
+            cursor = db.cursor()
 
-        squl_query = '''
-        WITH combined_times AS (
-            SELECT "Official Time" AS time
-            FROM marathon_results_2015 
-            where "M/F" = ? and age BETWEEN ? and ?
-            UNION ALL
-            SELECT "Official Time"
-            FROM marathon_results_2016
-            where "M/F" = ? and age BETWEEN ? and ?
-            UNION ALL
-            SELECT "Official Time"
-            FROM marathon_results_2017 
-            where "M/F" = ? and age BETWEEN ? and ?
-        ),
-        time_in_seconds AS (
+            squl_query = '''
+            WITH combined_times AS (
+                SELECT "Official Time" AS time
+                FROM marathon_results_2015 
+                where "M/F" = ? and age BETWEEN ? and ?
+                UNION ALL
+                SELECT "Official Time"
+                FROM marathon_results_2016
+                where "M/F" = ? and age BETWEEN ? and ?
+                UNION ALL
+                SELECT "Official Time"
+                FROM marathon_results_2017 
+                where "M/F" = ? and age BETWEEN ? and ?
+            ),
+            time_in_seconds AS (
+                SELECT 
+                    time,
+                    CAST(SUBSTR(TRIM(time), 1, 2) AS INTEGER) * 3600 +
+                    CAST(SUBSTR(TRIM(time), 3, 2) AS INTEGER) * 60 + 
+                    CAST(SUBSTR(TRIM(time), 6, 2) AS INTEGER) 
+                    AS total_seconds
+                FROM combined_times
+            ),
+            average_seconds AS (
+                SELECT AVG(total_seconds) AS avg_seconds
+                FROM time_in_seconds
+            )
             SELECT 
-                time,
-                CAST(SUBSTR(TRIM(time), 1, 2) AS INTEGER) * 3600 +
-                CAST(SUBSTR(TRIM(time), 3, 2) AS INTEGER) * 60 + 
-                CAST(SUBSTR(TRIM(time), 6, 2) AS INTEGER) 
-                AS total_seconds
-            FROM combined_times
-        ),
-        average_seconds AS (
-            SELECT AVG(total_seconds) AS avg_seconds
-            FROM time_in_seconds
-        )
-        SELECT 
-            CAST(avg_seconds / 3600 AS INTEGER) || ':' || -- Hours
-            PRINTF('%02d', (avg_seconds % 3600) / 60) || ':' || -- Minutes
-            PRINTF('%02d', avg_seconds % 60) AS avg_time -- Seconds
-        FROM average_seconds;
-        '''
-    
-        cursor.execute(squl_query, (sex, age-5, age+5, sex, age-5, age+5, sex, age-5, age+5))
-        result = cursor.fetchone()
-        db.close()
+                CAST(avg_seconds / 3600 AS INTEGER) || ':' || -- Hours
+                PRINTF('%02d', (avg_seconds % 3600) / 60) || ':' || -- Minutes
+                PRINTF('%02d', avg_seconds % 60) AS avg_time -- Seconds
+            FROM average_seconds;
+            '''
+        
+            cursor.execute(squl_query, (sex, age-5, age+5, sex, age-5, age+5, sex, age-5, age+5))
+            result = cursor.fetchone()
+            db.close()
 
-        # 평균 시간 저장
-        avg_time=result[0]
-        print(result[0])
+            # 평균 시간 저장
+            avg_time=result[0]
+            session['avg_time'] = avg_time
+            print(result[0])
+        
+        if 'height' in request.form:
+            height = float(request.form['height'])
 
-    return render_template('my_recommand_run.html', age=age, sex=sex, avg_time=avg_time)
+            db = sqlite3.connect('marathon.db')
+            cursor = db.cursor()
+
+            sql_stride_query = '''
+            WITH calculated_stride AS (
+                SELECT ? * 0.5 AS stride_cm
+            ),
+            closest_stride AS (
+                SELECT stride_cm
+                FROM run_cadence
+                ORDER BY ABS(stride_cm - (SELECT stride_cm FROM calculated_stride)) ASC
+                LIMIT 1 
+            )
+            SELECT *
+            FROM run_cadence
+            WHERE stride_cm = (SELECT stride_cm FROM closest_stride);
+            '''
+
+            cursor.execute(sql_stride_query, (height,))
+            run_cadence_result = cursor.fetchall() # 모든 결과 가져오기
+            db.close()
+
+            session['height'] = height
+            session['run_cadence_result'] = run_cadence_result
+
+        session['age'] = age
+        session['sex'] = sex
+
+    return render_template('my_recommand_run.html', age=age, sex=sex, avg_time=avg_time, height=height, run_cadence_result=run_cadence_result)
 
 @app.route('/run_record', methods=['GET', 'POST'])
 def run_record():
