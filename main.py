@@ -4,9 +4,29 @@ import sqlite3
 app = Flask(__name__)
 app.secret_key = 'your_secret_key' 
 
-@app.route('/')
+@app.route('/', methods=['GET','POST'])
 def home():
-    return render_template('home.html')
+    run_record_result = None
+    if request.method == 'POST':
+        if 'distance' in request.form:
+            distance = request.form['distance']
+            print(distance)
+
+            db = sqlite3.connect('marathon.db')
+            cursor = db.cursor()
+
+            squl_query_records = '''
+            SELECT *
+            FROM run_records
+            WHERE distance = ?
+            ORDER BY pace ASC, time ASC;
+            '''
+
+            cursor.execute(squl_query_records, (distance,))
+            run_record_result = cursor.fetchall() 
+            db.close()
+
+    return render_template('home.html', run_record_result=run_record_result)
 
 # get : 서버에서 데이터를 가져올 때 사용
 # post : 클라이언트가 서버로 데이터를 보낼때 사용
