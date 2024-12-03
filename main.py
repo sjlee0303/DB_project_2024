@@ -4,7 +4,41 @@ import sqlite3
 app = Flask(__name__)
 app.secret_key = 'your_secret_key' 
 
-@app.route('/', methods=['GET','POST'])
+@app.route('/')
+def startpage():
+
+    return render_template('startpage.html')
+
+@app.route('/signup',methods=['GET','POST'])
+def signup():
+
+    run_record_result = None
+    userid = None
+    password = None
+    if request.method == 'POST':
+        userid = request.form['userid']
+        password = request.form['password']
+
+        db = sqlite3.connect('marathon.db')
+        cursor = db.cursor()
+
+        sql_query_sign ='''
+        insert into login
+        values (?,?)
+        '''
+
+        cursor.execute(sql_query_sign, (userid, password,))
+        db.commit() # 커밋을 통해 insert 실행
+        db.close()
+
+    return render_template('signup.html', userid = userid)
+
+@app.route('/login')
+def login():
+
+    return render_template('login.html')
+
+@app.route('/home', methods=['GET','POST'])
 def home():
     run_record_result = None
     if request.method == 'POST':
@@ -15,14 +49,14 @@ def home():
             db = sqlite3.connect('marathon.db')
             cursor = db.cursor()
 
-            squl_query_records = '''
+            sql_query_records = '''
             SELECT *
             FROM run_records
             WHERE distance = ?
             ORDER BY pace ASC, time ASC;
             '''
 
-            cursor.execute(squl_query_records, (distance,))
+            cursor.execute(sql_query_records, (distance,))
             run_record_result = cursor.fetchall() 
             db.close()
 
