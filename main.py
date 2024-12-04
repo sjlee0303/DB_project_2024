@@ -213,14 +213,83 @@ def run_record():
         db.commit()
         db.close()
 
-        # 성공 메시지
-        return "<h1>RUN 기록이 성공적으로 저장되었습니다!</h1>"
+        # 저장 완료 페이지 렌더링
+        return render_template('run_record_success.html')
     return render_template('run_record.html')
 
 
-@app.route('/run_record_search')
+
+@app.route('/run_record_search', methods=['GET'])
 def run_record_search():
-    return render_template('run_record_search.html')
+    runner_id = request.args.get('runner_id')  # 검색된 Runner ID
+
+    db = sqlite3.connect('marathon.db')
+    cursor = db.cursor()
+
+    runs = []
+    if runner_id:
+        query = "SELECT * FROM run_records WHERE runner_id = ?"
+        cursor.execute(query, (runner_id,))
+        runs = cursor.fetchall()
+
+    db.close()
+    return render_template('run_record_search.html', runs=runs, runner_id=runner_id or '')
+
+
+@app.route('/update_run_record', methods=['POST'])
+def update_run_record():
+    record_id = request.form['record_id']
+    new_distance = request.form['distance']
+    new_pace = request.form['pace']
+    new_time = request.form['time']
+    runner_id = request.form['runner_id']  # 수정 후 검색 유지
+
+    db = sqlite3.connect('marathon.db')
+    cursor = db.cursor()
+
+    query = '''
+    UPDATE run_records
+    SET distance = ?, pace = ?, time = ?
+    WHERE id = ?
+    '''
+    cursor.execute(query, (new_distance, new_pace, new_time, record_id))
+    db.commit()
+    db.close()
+
+    return redirect(f'/run_record_search?runner_id={runner_id}')
+
+
+@app.route('/delete_run_records', methods=['POST'])
+def delete_run_records():
+    # 선택된 record_ids 가져오기
+    record_ids = request.form.getlist('record_ids')
+    runner_id = request.form['runner_id']  # 삭제 후 검색 유지
+
+    if not record_ids:
+        return "<h1>Error: No records selected for deletion</h1>"
+
+    db = sqlite3.connect('marathon.db')
+    cursor = db.cursor()
+
+    try:
+        # SQL 쿼리로 record_ids 삭제
+        query = f"DELETE FROM run_records WHERE id IN ({','.join(['?'] * len(record_ids))})"
+        cursor.execute(query, record_ids)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        return f"<h1>Error during deletion: {e}</h1>"
+    finally:
+        db.close()
+
+    # 삭제 후 동일 Runner ID 검색 페이지로 이동
+    return redirect(f'/run_record_search?runner_id={runner_id}')
+
+
+
+
+
+
 
 if __name__ == '__main__':
     app.debug = True
