@@ -1,42 +1,124 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>RUN 기록 조회</title>
+    <title>My RUN Records</title>
+    <script>
+        let currentMode = ""; // 현재 활성화된 모드 (edit/delete)
+
+        function enableEditMode() {
+            if (currentMode === "delete") cancelAction(); // Delete 모드 비활성화
+            currentMode = "edit";
+
+            document.getElementById("edit-actions").style.display = "block";
+            document.getElementById("delete-actions").style.display = "none";
+            document.querySelectorAll(".checkbox").forEach((checkbox) => {
+                checkbox.style.display = "inline-block";
+                checkbox.checked = false; // 기존 체크박스 초기화
+                checkbox.onclick = () => enforceSingleCheck(checkbox); // 체크 하나만 허용
+            });
+        }
+
+        function enableDeleteMode() {
+            if (currentMode === "edit") cancelAction(); // Edit 모드 비활성화
+            currentMode = "delete";
+
+            document.getElementById("delete-actions").style.display = "block";
+            document.getElementById("edit-actions").style.display = "none";
+            document.querySelectorAll(".checkbox").forEach((checkbox) => {
+                checkbox.style.display = "inline-block";
+                checkbox.onclick = null; // 체크 여러 개 허용
+            });
+        }
+
+        function cancelAction() {
+            currentMode = "";
+            document.getElementById("edit-actions").style.display = "none";
+            document.getElementById("delete-actions").style.display = "none";
+            document.querySelectorAll(".checkbox").forEach((checkbox) => {
+                checkbox.style.display = "none";
+                checkbox.checked = false; // 체크박스 초기화
+            });
+        }
+
+        function enforceSingleCheck(selectedCheckbox) {
+            document.querySelectorAll(".checkbox").forEach((checkbox) => {
+                if (checkbox !== selectedCheckbox) {
+                    checkbox.checked = false; // 다른 체크박스는 해제
+                }
+            });
+
+            // 선택된 체크박스의 데이터 가져오기
+            if (selectedCheckbox.checked) {
+                const row = selectedCheckbox.closest("tr");
+                const id = row.cells[1].innerText;
+                const distance = row.cells[3].innerText;
+                const pace = row.cells[4].innerText;
+                const time = row.cells[5].innerText;
+
+                // 기존 값을 수정 폼에 채우기
+                document.getElementById("edit-record-id").value = id;
+                document.getElementById("distance").value = distance;
+                document.getElementById("pace").value = pace;
+                document.getElementById("time").value = time;
+            }
+        }
+    </script>
 </head>
 <body>
-    <h1>RUN 기록 조회</h1>
+    <h1>My RUN Records</h1>
     <!-- 검색 폼 -->
     <form method="GET" action="/run_record_search">
-        <label for="runner_id">Runner ID:</label>
-        <input type="text" id="runner_id" name="runner_id" placeholder="Enter Runner ID">
-        
-        <label for="distance">Distance:</label>
-        <select id="distance" name="distance">
-            <option value="">--Select Distance--</option>
-            <option value="5km">5km</option>
-            <option value="10km">10km</option>
-            <option value="half">Half Marathon</option>
-            <option value="full">Full Marathon</option>
-        </select>
-        <button type="submit">Search</button>
+        <label for="runner_id">Enter Your ID:</label>
+        <input type="text" id="runner_id" name="runner_id" placeholder="Enter Runner ID" value="{{ runner_id }}">
+        <button type="submit">Search My Records</button>
     </form>
     <br>
-    <!-- 전체 기록 보기 버튼 -->
-    <form method="GET" action="/run_record_search">
-        <button type="submit">View All Records</button>
-    </form>
-    <br>
-    <!-- 홈페이지 이동 버튼 -->
     <form method="GET" action="/">
         <button type="submit">Go to Home</button>
     </form>
     <br>
-    <!-- 테이블 결과 -->
+
     {% if runs %}
+    <!-- Edit/Delete Buttons -->
+    <button onclick="enableEditMode()">Edit</button>
+    <button onclick="enableDeleteMode()">Delete</button>
+    <br><br>
+
+    <!-- 수정 모드 -->
+    <div id="edit-actions" style="display: none;">
+        <form method="POST" action="/update_run_record">
+            <input type="hidden" name="record_id" id="edit-record-id">
+            <input type="hidden" name="runner_id" value="{{ runner_id }}">
+            <label for="distance">New Distance:</label>
+            <select id="distance" name="distance">
+                <option value="5km">5km</option>
+                <option value="10km">10km</option>
+                <option value="half">Half Marathon</option>
+                <option value="full">Full Marathon</option>
+            </select>
+            <label for="pace">New Pace:</label>
+            <input type="text" id="pace" name="pace" placeholder="Pace (e.g., 5:30)">
+            <label for="time">New Time:</label>
+            <input type="text" id="time" name="time" placeholder="Time (e.g., 02:30:45)">
+            <button type="submit">Save</button>
+        </form>
+        <button onclick="cancelAction()">Cancel</button>
+    </div>
+
+    <!-- 삭제 모드 -->
+    <div id="delete-actions" style="display: none;">
+        <form method="POST" action="/delete_run_records" id="delete-form">
+            <input type="hidden" name="runner_id" value="{{ runner_id }}">
+            <button type="submit">Confirm Delete</button>
+        </form>
+        <button onclick="cancelAction()">Cancel</button>
+    </div>
+    
+
     <table border="1">
         <thead>
             <tr>
-                <th>Rank</th>
+                <th>Select</th>
                 <th>ID</th>
                 <th>Runner ID</th>
                 <th>Distance</th>
@@ -47,7 +129,10 @@
         <tbody>
             {% for run in runs %}
             <tr>
-                <td>{{ run[5] }}</td> <!-- Rank -->
+                <td>
+                    <input type="checkbox" class="checkbox" style="display: none;" name="record_ids" form="delete-form" value="{{ run[0] }}">
+                </td>
+                
                 <td>{{ run[0] }}</td>
                 <td>{{ run[1] }}</td>
                 <td>{{ run[2] }}</td>
@@ -58,7 +143,7 @@
         </tbody>
     </table>
     {% else %}
-    <p>No records found.</p>
+    <p>No records found for this ID.</p>
     {% endif %}
 </body>
 </html>
