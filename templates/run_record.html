@@ -1,21 +1,16 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>RUN 기록하기</title>
 </head>
-
 <body>
-    <h1>RUN 기록하기</h1>
+    <h1>{{ userid }}'s RUN 기록하기</h1>
     <!-- 홈페이지 이동 버튼 -->
-    <form method="GET" action="/">
+    <form method="GET" action="/home">
         <button type="submit">Go to Home</button>
     </form>
     <br>
     <form method="POST" action="/run_record">
-        <label for="runner_id">ID:</label>
-        <input type="text" id="runner_id" name="runner_id" required><br><br>
-
         <label for="distance">마라톤 거리:</label>
         <select id="distance" name="distance">
             <option value="5km">5km</option>
@@ -33,5 +28,4 @@
         <button type="submit">저장</button>
     </form>
 </body>
-
 </html>

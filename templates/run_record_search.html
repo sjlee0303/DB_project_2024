@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My RUN Records</title>
+    <title>{{ userid }}'s RUN Records</title>
     <script>
         let currentMode = ""; // 현재 활성화된 모드 (edit/delete)
 
@@ -65,15 +65,9 @@
     </script>
 </head>
 <body>
-    <h1>My RUN Records</h1>
-    <!-- 검색 폼 -->
-    <form method="GET" action="/run_record_search">
-        <label for="runner_id">Enter Your ID:</label>
-        <input type="text" id="runner_id" name="runner_id" placeholder="Enter Runner ID" value="{{ runner_id }}">
-        <button type="submit">Search My Records</button>
-    </form>
-    <br>
-    <form method="GET" action="/">
+    <h1>{{ userid }}'s RUN Records</h1>
+    <!-- 홈페이지 이동 버튼 -->
+    <form method="GET" action="/home">
         <button type="submit">Go to Home</button>
     </form>
     <br>
@@ -88,7 +82,7 @@
     <div id="edit-actions" style="display: none;">
         <form method="POST" action="/update_run_record">
             <input type="hidden" name="record_id" id="edit-record-id">
-            <input type="hidden" name="runner_id" value="{{ runner_id }}">
+            <input type="hidden" name="runner_id" value="{{ userid }}">
             <label for="distance">New Distance:</label>
             <select id="distance" name="distance">
                 <option value="5km">5km</option>
@@ -108,13 +102,12 @@
     <!-- 삭제 모드 -->
     <div id="delete-actions" style="display: none;">
         <form method="POST" action="/delete_run_records" id="delete-form">
-            <input type="hidden" name="runner_id" value="{{ runner_id }}">
+            <input type="hidden" name="runner_id" value="{{ userid }}">
             <button type="submit">Confirm Delete</button>
         </form>
         <button onclick="cancelAction()">Cancel</button>
     </div>
     
-
     <table border="1">
         <thead>
             <tr>
@@ -132,7 +125,6 @@
                 <td>
                     <input type="checkbox" class="checkbox" style="display: none;" name="record_ids" form="delete-form" value="{{ run[0] }}">
                 </td>
-                
                 <td>{{ run[0] }}</td>
                 <td>{{ run[1] }}</td>
                 <td>{{ run[2] }}</td>

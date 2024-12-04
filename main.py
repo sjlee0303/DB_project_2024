@@ -194,9 +194,12 @@ def my_recommand_run():
 
 @app.route('/run_record', methods=['GET', 'POST'])
 def run_record():
+    userid = session.get('userid', None)  # 로그인한 사용자 ID 가져오기
+    if not userid:
+        return redirect(url_for('login'))  # 로그인하지 않은 경우 로그인 페이지로 이동
+
     if request.method == 'POST':
         # 폼 데이터 가져오기
-        runner_id = request.form['runner_id']
         distance = request.form['distance']
         pace = request.form['pace']
         time = request.form['time']
@@ -208,32 +211,34 @@ def run_record():
         # 데이터 저장
         cursor.execute(
             "INSERT INTO run_records (runner_id, distance, pace, time) VALUES (?, ?, ?, ?)",
-            (runner_id, distance, pace, time)
+            (userid, distance, pace, time)
         )
         db.commit()
         db.close()
 
         # 저장 완료 페이지 렌더링
-        return render_template('run_record_success.html')
-    return render_template('run_record.html')
+        return render_template('run_record_success.html', userid=userid)
+    return render_template('run_record.html', userid=userid)
+
 
 
 
 @app.route('/run_record_search', methods=['GET'])
 def run_record_search():
-    runner_id = request.args.get('runner_id')  # 검색된 Runner ID
+    userid = session.get('userid', None)  # 로그인한 사용자 ID 가져오기
+    if not userid:
+        return redirect(url_for('login'))  # 로그인하지 않은 경우 로그인 페이지로 이동
 
     db = sqlite3.connect('marathon.db')
     cursor = db.cursor()
 
     runs = []
-    if runner_id:
-        query = "SELECT * FROM run_records WHERE runner_id = ?"
-        cursor.execute(query, (runner_id,))
-        runs = cursor.fetchall()
+    query = "SELECT * FROM run_records WHERE runner_id = ?"
+    cursor.execute(query, (userid,))
+    runs = cursor.fetchall()
 
     db.close()
-    return render_template('run_record_search.html', runs=runs, runner_id=runner_id or '')
+    return render_template('run_record_search.html', runs=runs, userid=userid)
 
 
 @app.route('/update_run_record', methods=['POST'])
