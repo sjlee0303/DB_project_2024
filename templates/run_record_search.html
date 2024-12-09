@@ -62,6 +62,42 @@
                 document.getElementById("time").value = time;
             }
         }
+
+        function calculatePace() {
+            const timeInput = document.getElementById('time').value;
+            const distanceInput = document.getElementById('distance').value;
+
+            if (timeInput && distanceInput) {
+                const distanceKm = parseFloat(distanceInput.replace('km', '').replace('half', '21.1').replace('full', '42.2'));
+                const [hours, minutes, seconds] = timeInput.split(':').map(Number);
+
+                if (minutes >= 60 || seconds >= 60) {
+                    alert("초/분은 59초/분이 최대입니다. 다시 입력해주세요.");
+                    return;
+                }
+
+                const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+                const paceSeconds = totalSeconds / distanceKm;
+                const paceMinutes = Math.floor(paceSeconds / 60);
+                const remainingSeconds = Math.round(paceSeconds % 60);
+
+                document.getElementById('pace').value = `${paceMinutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function validateTimeInput(event) {
+            const value = event.target.value;
+            const parts = value.split(':');
+            if (parts.length === 3) {
+                const minutes = parseInt(parts[1], 10);
+                const seconds = parseInt(parts[2], 10);
+
+                if (minutes >= 60 || seconds >= 60) {
+                    alert("Minutes and seconds cannot exceed 59.");
+                    event.target.value = ""; // Reset invalid input
+                }
+            }
+        }
     </script>
 </head>
 <body>
@@ -90,10 +126,10 @@
                 <option value="half">Half Marathon</option>
                 <option value="full">Full Marathon</option>
             </select>
-            <label for="pace">New Pace:</label>
-            <input type="text" id="pace" name="pace" placeholder="Pace (e.g., 5:30)">
-            <label for="time">New Time:</label>
-            <input type="text" id="time" name="time" placeholder="Time (e.g., 02:30:45)">
+            <label for="pace">Pace:</label>
+            <input type="text" id="pace" name="pace" readonly>
+            <label for="time">New Time (HH:MM:SS):</label>
+            <input type="text" id="time" name="time" placeholder="Time (e.g., 02:30:45)" onblur="calculatePace()" oninput="validateTimeInput(event)">
             <button type="submit">Save</button>
         </form>
         <button onclick="cancelAction()">Cancel</button>

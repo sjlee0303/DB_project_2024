@@ -201,8 +201,20 @@ def run_record():
     if request.method == 'POST':
         # 폼 데이터 가져오기
         distance = request.form['distance']
-        pace = request.form['pace']
         time = request.form['time']
+
+        # 거리 값을 숫자로 변환 (e.g., "10km" → 10)
+        distance_km = float(distance.replace('km', '').replace('half', '21.1').replace('full', '42.2'))
+
+        # 완주 시간을 초 단위로 변환
+        hours, minutes, seconds = map(int, time.split(':'))
+        total_seconds = hours * 3600 + minutes * 60 + seconds
+
+        # Pace 계산 (분/킬로미터)
+        pace_seconds = total_seconds / distance_km
+        pace_minutes = int(pace_seconds // 60)
+        pace_remaining_seconds = int(pace_seconds % 60)
+        pace = f"{pace_minutes}:{pace_remaining_seconds:02d}"
 
         # SQLite 데이터베이스 연결
         db = sqlite3.connect('marathon.db')
@@ -217,8 +229,10 @@ def run_record():
         db.close()
 
         # 저장 완료 페이지 렌더링
-        return render_template('run_record_success.html', userid=userid)
+        message = f"RUN 기록이 성공적으로 저장되었습니다! (Pace: {pace} 분/킬로미터)"
+        return render_template('run_record_success.html', userid=userid, message=message)
     return render_template('run_record.html', userid=userid)
+
 
 
 

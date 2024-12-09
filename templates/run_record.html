@@ -2,6 +2,57 @@
 <html>
 <head>
     <title>RUN 기록하기</title>
+    <script>
+        function validateTimeInput(event) {
+            const value = event.target.value;
+            const parts = value.split(':');
+            if (parts.length === 3) {
+                const hours = parseInt(parts[0], 10);
+                const minutes = parseInt(parts[1], 10);
+                const seconds = parseInt(parts[2], 10);
+
+                if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+                    alert("Please enter a valid time in HH:MM:SS format.");
+                    event.target.value = ""; // Reset invalid input
+                    return false;
+                }
+
+                if (minutes >= 60 || seconds >= 60) {
+                    alert("Minutes and seconds cannot exceed 59.");
+                    event.target.value = ""; // Reset invalid input
+                    return false;
+                }
+            } else {
+                alert("Please enter time in HH:MM:SS format.");
+                event.target.value = ""; // Reset invalid input
+                return false;
+            }
+        }
+
+        function validateForm() {
+            const timeInput = document.getElementById('time').value;
+            if (!timeInput) {
+                alert("Please enter the completion time.");
+                return false;
+            }
+
+            const parts = timeInput.split(':');
+            if (parts.length !== 3) {
+                alert("Please enter time in HH:MM:SS format.");
+                return false;
+            }
+
+            const minutes = parseInt(parts[1], 10);
+            const seconds = parseInt(parts[2], 10);
+
+            if (minutes >= 60 || seconds >= 60) {
+                alert("초/분은 최대 59초/분까지 작성할 수 있습니다. 다시 작성하십시오.");
+                return false;
+            }
+
+            return true; // Form is valid
+        }
+    </script>
 </head>
 <body>
     <h1>{{ userid }}'s RUN 기록하기</h1>
@@ -10,7 +61,7 @@
         <button type="submit">Go to Home</button>
     </form>
     <br>
-    <form method="POST" action="/run_record">
+    <form method="POST" action="/run_record" onsubmit="return validateForm()">
         <label for="distance">마라톤 거리:</label>
         <select id="distance" name="distance">
             <option value="5km">5km</option>
@@ -19,11 +70,8 @@
             <option value="full">Full Marathon</option>
         </select><br><br>
 
-        <label for="pace">Pace (분/킬로미터):</label>
-        <input type="text" id="pace" name="pace" placeholder="예: 5:30" required><br><br>
-
         <label for="time">완주 시간 (HH:MM:SS):</label>
-        <input type="text" id="time" name="time" placeholder="예: 02:30:45" required><br><br>
+        <input type="text" id="time" name="time" placeholder="예: 02:30:45" required onblur="validateTimeInput(event)"><br><br>
 
         <button type="submit">저장</button>
     </form>
