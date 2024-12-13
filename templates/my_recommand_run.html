@@ -6,7 +6,7 @@
                 border: 2px solid #ccc; /* 테두리 색상 */
                 border-radius: 10px; /* 모서리 둥글게 */
                 padding: 15px; /* 내부 여백 */
-                width: 300px; /* 박스 너비 */
+                width: 750px; /* 박스 너비 */
                 margin: 20px 0; /* 위아래 여백 추가, 좌우 여백 제거 */
                 margin-left: 0; /* 왼쪽 정렬 */ 
                 /*margin: 20px auto;*/
@@ -38,7 +38,14 @@
         <form method="GET" action="/home">
             <button type="submit">Go to Home</button>
         </form>
-        <h3>내 또래 사람들의 평균 마라톤 완주 시간은?</h3>
+        <h2>내 또래 사람들의 평균 마라톤 완주 시간은?</h2>
+        <P>
+            입력한 나이와 성별을 기준으로 실제 마라톤 완주 기록 데이터를 분석하여 <br>
+            내 또래 사람들의 평균 마라톤 완주 시간을 제공합니다. <br>
+            <br>
+            더 나아가, 평균 시간에 맞춘 추천 페이스 차트를 통해 효율적인 달리기 계획을 세워보세요! <br>
+        </P>
+
         <div class="result-box">
             <p>나이와 성별(M/F)을 입력하세요.</p>
             <form action="/my_recommand_run" method="POST">
@@ -57,6 +64,7 @@
         </div>
         
         <div class="result-box">
+            <h4>내 또래 사람들의 평균 마라톤 완주 시간! (42.195km 기준)</h4>
             {% if age %}
                 <p>입력한 나이 : {{age}}</p>
             {% endif %}
@@ -64,11 +72,56 @@
                 <p>입력한 성별 : {{sex}}</p>
             {% endif %}
             {% if avg_time %}
-                <p>평균 완주 시간 : {{avg_time}}</p>
+                <p>풀 코스 평균 완주 시간 : {{avg_time}}</p>
             {% endif %}
+            {% if average_pace %}
+            <p>풀 코스 평균 페이스 : {{average_pace}}</p>
+            {% endif %}
+
+            <br>
+
+            {% if closest_tuple %}
+            <h4>완주 시간에 따른 추천 페이스 차트!</h4>
+            <p>초반의 오버페이스로 후반에 '마라톤벽'을 피하기 위해서는 <br>
+                자신의 목표시간에 맞춰 구간별 고른 페이스로 레이스를 펼치는 것이 효과적이다!</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>1km</th>
+                        <th>5km</th>
+                        <th>10km</th>
+                        <th>15km</th>
+                        <th>20km</th>
+                        <th>25km</th>
+                        <th>30km</th>
+                        <th>35km</th>
+                        <th>40km</th>
+                        <th>42.195km</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for column in closest_tuple[:-1] %}
+                        <td>{{ column }}</td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+            {% else %}
+            <p>매칭되는 추천 페이스 차트가 없습니다.</p>
+            {% endif %}
+
         </div>
 
-        <h3>내 키에 따른 보폭과 보폭에 따른 케이던스 정보를 확인해보자!</h3>
+        <br><br>
+
+        <h2>내 키에 따른 보폭과 보폭에 따른 케이던스 정보를 확인해보자!</h2>
+        <p>보폭은 키와 밀접한 관계가 있으며, <br>
+            일정한 보폭에서의 케이던스(1분당 발걸음 수)가 달리기 페이스(1km당 시간)에 영향을 미칩니다. 
+            <br>
+            <br>
+            아래는 입력한 키를 기준으로 계산된 보폭과 다양한 케이던스에 따른 예상 페이스 정보입니다. <br>
+            이 정보를 바탕으로 자신의 최적의 달리기 리듬을 찾아보세요!<br></p>
         <div class="result-box">
             <p>키를 입력하세요.</p>
             <form action="/my_recommand_run" method="POST">
@@ -84,20 +137,19 @@
             <div class ="result-box">
                 <p>입력한 키: {{height}} </p>
                 <p>계산된 보폭: {{height*0.5}} </p>
-            </div>
-
-            {% if run_cadence_result %}
-                <h5>추천 케이던스 데이터:</h5>
+            
+                {% if run_cadence_result %}
+                <h4>추천 케이던스 데이터:</h4>
                 <table>
                     <thead>
                         <tr>
                             <th>보폭 (cm)</th>
                             <th>케이던스 (spm)</th>
                             <th>페이스 (1km)</th>
-                            <th>5km 시간</th>
-                            <th>10km 시간</th>
-                            <th>하프 마라톤</th>
-                            <th>풀 마라톤</th>
+                            <th>5km</th>
+                            <th>10km</th>
+                            <th>half(21.0975km)</th>
+                            <th>full(42.195km)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -117,7 +169,8 @@
             {% else %}
                 <p>추천 데이터를 찾을 수 없습니다.</p>
             {% endif %}
-
+            
+            </div>
         {% endif %}
 
     </body>

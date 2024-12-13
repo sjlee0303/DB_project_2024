@@ -164,12 +164,40 @@ def my_recommand_run():
         
             cursor.execute(squl_query, (sex, age-5, age+5, sex, age-5, age+5, sex, age-5, age+5))
             result = cursor.fetchone()
-            db.close()
+            "db.close()"
 
             # 평균 시간 저장
             avg_time=result[0]
             session['avg_time'] = avg_time
             print(result[0])
+
+            # 평균 시간을 초 단위로 변환
+            avg_time_parts = list(map(int, avg_time.split(':')))
+            avg_time_seconds = avg_time_parts[0] * 3600 + avg_time_parts[1] * 60 + avg_time_parts[2]
+
+            # 풀 코스 평균 페이스 계산
+            average_pace_per_km_seconds = avg_time_seconds / 42.195
+            pace_minutes = int(average_pace_per_km_seconds // 60)
+            pace_seconds = int(average_pace_per_km_seconds % 60)
+
+            # 평균 페이스 출력
+            average_pace = f"{pace_minutes}:{pace_seconds:02d}"
+
+            # marathon_pace_chart 테이블에서 가장 가까운 값 찾기
+            pace_query = '''
+            SELECT *, 
+                ABS(
+                    CAST(SUBSTR(TRIM("42.195km"), 1, 1) AS INTEGER) * 3600 +
+                    CAST(SUBSTR(TRIM("42.195km"), 3, 2) AS INTEGER) * 60 + 
+                    CAST(SUBSTR(TRIM("42.195km"), 6, 2) AS INTEGER) - ?
+                ) AS time_diff
+            FROM marathon_pace_chart
+            ORDER BY time_diff ASC
+            LIMIT 1;
+            '''
+            cursor.execute(pace_query, (avg_time_seconds,))
+            closest_tuple = cursor.fetchone()
+            db.close()
         
         if 'height' in request.form:
             height = float(request.form['height'])
@@ -202,7 +230,7 @@ def my_recommand_run():
         session['age'] = age
         session['sex'] = sex
 
-    return render_template('my_recommand_run.html', age=age, sex=sex, avg_time=avg_time, height=height, run_cadence_result=run_cadence_result)
+    return render_template('my_recommand_run.html', age=age, sex=sex, avg_time=avg_time, closest_tuple=closest_tuple, average_pace = average_pace, height=height, run_cadence_result=run_cadence_result)
 
 @app.route('/run_record', methods=['GET', 'POST'])
 def run_record():
