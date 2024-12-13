@@ -68,26 +68,38 @@ def login():
 def home():
     userid = session.get('userid',None)
     run_record_result = None
+    selected_distance = None
+
     if request.method == 'POST':
         if 'distance' in request.form:
             distance = request.form['distance']
+            selected_distance = distance
             print(distance)
 
             db = sqlite3.connect('marathon.db')
             cursor = db.cursor()
 
             sql_query_records = '''
-            SELECT *
+            SELECT 
+                id,
+                runner_id,
+                distance,
+                pace,
+                time,
+                CAST(SUBSTR(TRIM(time), 1, 2) AS INTEGER) * 3600 +
+                CAST(SUBSTR(TRIM(time), 4, 2) AS INTEGER) * 60 +
+                CAST(SUBSTR(TRIM(time), 7, 2) AS INTEGER) 
+                AS total_seconds
             FROM run_records
             WHERE distance = ?
-            ORDER BY pace ASC, time ASC;
+            order by total_seconds asc, id asc
             '''
 
             cursor.execute(sql_query_records, (distance,))
             run_record_result = cursor.fetchall() 
             db.close()
 
-    return render_template('home.html', run_record_result=run_record_result, userid=userid)
+    return render_template('home.html', run_record_result=run_record_result, userid=userid, selected_distance=selected_distance)
 
 # get : 서버에서 데이터를 가져올 때 사용
 # post : 클라이언트가 서버로 데이터를 보낼때 사용
@@ -214,7 +226,8 @@ def run_record():
         pace_seconds = total_seconds / distance_km
         pace_minutes = int(pace_seconds // 60)
         pace_remaining_seconds = int(pace_seconds % 60)
-        pace = f"{pace_minutes}:{pace_remaining_seconds:02d}"
+        pace = f"{pace_minutes:02d}:{pace_remaining_seconds:02d}"
+        time_02d = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
         # SQLite 데이터베이스 연결
         db = sqlite3.connect('marathon.db')
@@ -223,7 +236,7 @@ def run_record():
         # 데이터 저장
         cursor.execute(
             "INSERT INTO run_records (runner_id, distance, pace, time) VALUES (?, ?, ?, ?)",
-            (userid, distance, pace, time)
+            (userid, distance, pace, time_02d)
         )
         db.commit()
         db.close()

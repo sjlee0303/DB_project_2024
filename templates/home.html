@@ -39,10 +39,10 @@
         <form action="/home" method="POST">
             <label for="distance">Select Distance:</label>
             <select id="distance" name="distance">
-                <option value="5km">5km</option>
-                <option value="10km">10km</option>
-                <option value="half">Half Marathon</option>
-                <option value="full">Full Marathon</option>
+                <option value="5km" {% if selected_distance == '5km' %}selected{% endif %}>5km</option>
+                <option value="10km" {% if selected_distance == '10km' %}selected{% endif %}>10km</option>
+                <option value="half" {% if selected_distance == 'half' %}selected{% endif %}>Half Marathon</option>
+                <option value="full" {% if selected_distance == 'full' %}selected{% endif %}>Full Marathon</option>
             </select>
             <span>기록 순위 </span>
             <input type="submit" value="조회">
