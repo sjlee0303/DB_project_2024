@@ -39,9 +39,10 @@ def signup():
 
 @app.route('/login',methods=['GET','POST'])
 def login():
-
     userid = None
     password = None
+    error_message = None
+    
     if request.method == 'POST':
         userid = request.form['userid']
         password = request.form['password']
@@ -56,13 +57,18 @@ def login():
         '''
         cursor.execute(sql_query_login, (userid,))
         result = cursor.fetchone()
-        passwd = result[0]
 
-        if password == passwd :
-            session['userid'] = userid
-            return redirect(url_for('home'))
+        if result:
+            passwd = result[0]
+            if password == passwd:
+                session['userid'] = userid
+                return redirect(url_for('home'))
+            else:
+                error_message = "비밀번호가 틀렸습니다. 다시 시도하세요."  # 비밀번호 틀림
+        else:
+            error_message = "존재하지 않는 사용자입니다. 다시 확인하세요."  # 아이디 없음
 
-    return render_template('login.html')
+    return render_template('login.html', error_message=error_message)
 
 @app.route('/home', methods=['GET','POST'])
 def home():
@@ -118,6 +124,8 @@ def my_recommand_run():
     height = session.get('height', None)
     run_cadence_result = session.get('run_cadence_result', None)
 
+    closest_tuple = None
+    average_pace = None
 
     if request.method == 'POST' :
         # 사용자 입력 가져오기
