@@ -5,6 +5,11 @@
     <body>
         <h1>RUN Login</h1>
 
+        <form method="GET" action="/">
+            <button type="submit">RUN Start Page</button>
+        </form>
+        <br>
+
         <form action="/login" method="POST">
             <div>
                 <label for="userid">userid:</label>
@@ -21,6 +26,8 @@
 
         {% if error_message %}
         <p>{{ error_message }}</p>
+        <p>회원가입이 되어 있지 않다면, 먼저 회원가입을 진행해주세요!</p>
+        <a href="/signup">signup page</a>
         {% endif %}
 
     </body>

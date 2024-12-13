@@ -124,8 +124,8 @@ def my_recommand_run():
     height = session.get('height', None)
     run_cadence_result = session.get('run_cadence_result', None)
 
-    closest_tuple = None
-    average_pace = None
+    closest_tuple = session.get('closest_tuple', None)
+    average_pace = session.get('average_pace', None)
 
     if request.method == 'POST' :
         # 사용자 입력 가져오기
@@ -190,6 +190,7 @@ def my_recommand_run():
 
             # 평균 페이스 출력
             average_pace = f"{pace_minutes}:{pace_seconds:02d}"
+            session['average_pace'] = average_pace
 
             # marathon_pace_chart 테이블에서 가장 가까운 값 찾기
             pace_query = '''
@@ -205,6 +206,7 @@ def my_recommand_run():
             '''
             cursor.execute(pace_query, (avg_time_seconds,))
             closest_tuple = cursor.fetchone()
+            session['closest_tuple'] = closest_tuple
             db.close()
         
         if 'height' in request.form:
