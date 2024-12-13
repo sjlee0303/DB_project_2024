@@ -247,9 +247,6 @@ def run_record():
     return render_template('run_record.html', userid=userid)
 
 
-
-
-
 @app.route('/run_record_search', methods=['GET'])
 def run_record_search():
     userid = session.get('userid', None)  # 로그인한 사용자 ID 가져오기
@@ -276,6 +273,13 @@ def update_run_record():
     new_time = request.form['time']
     runner_id = request.form['runner_id']  # 수정 후 검색 유지
 
+    pace_minutes, pace_remaining_seconds = map(int, new_pace.split(':'))
+    new_pace_02d = f"{pace_minutes:02d}:{pace_remaining_seconds:02d}"
+
+    hours, minutes, seconds = map(int, new_time.split(':'))
+    new_time_02d = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+
     db = sqlite3.connect('marathon.db')
     cursor = db.cursor()
 
@@ -284,7 +288,7 @@ def update_run_record():
     SET distance = ?, pace = ?, time = ?
     WHERE id = ?
     '''
-    cursor.execute(query, (new_distance, new_pace, new_time, record_id))
+    cursor.execute(query, (new_distance, new_pace_02d, new_time_02d, record_id))
     db.commit()
     db.close()
 
@@ -316,11 +320,6 @@ def delete_run_records():
 
     # 삭제 후 동일 Runner ID 검색 페이지로 이동
     return redirect(f'/run_record_search?runner_id={runner_id}')
-
-
-
-
-
 
 
 if __name__ == '__main__':
